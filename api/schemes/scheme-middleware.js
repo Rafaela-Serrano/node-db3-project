@@ -62,25 +62,20 @@ const validateScheme = async (req, res, next) => {
     "message": "invalid step"
   }
 */
-const validateStep = async (req, res, next) => {
-try{
+const validateStep = (req, res, next) => {
+
   if(
-    !req.body.instructions === undefined|| 
-    !req.body.instructions.trim() ||
+    req.body.instructions === undefined|| 
     typeof req.body.instructions !== "string" ||
+    !req.body.instructions.trim() ||
     typeof req.body.step_number !== "number" ||
-    req.body.step_number < 1 
+    req.body.step_number < 1
      ){
-      next({
-        status:400,
-        message:"invalid step"
-      })
+      const error = {status:400, message:'invalid step'}
+      next(error)
      }else{
       next()
      }
-}catch(err){
-  next(err)
-}
 
 }
 
