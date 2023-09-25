@@ -1,3 +1,5 @@
+const db = require("../../data/db-config")
+
 function find() { // EXERCISE A
   /*
     1A- Study the SQL query below running it in SQLite Studio against `data/schemes.db3`.
@@ -13,11 +15,17 @@ function find() { // EXERCISE A
       ORDER BY sc.scheme_id ASC;
 
     2A- When you have a grasp on the query go ahead and build it in Knex.
-    Return from this function the resulting dataset.
+    Return from this function the resulting dataset.    
   */
+return db('schemes as sc')
+       .leftJoin('steps as st','sc.scheme_id','=','st.scheme_id')
+       .select('sc.*')
+       .count('st.step_id as number_of_steps')
+       .groupBy('sc.scheme_id')
+       .orderBy('sc.scheme_id', 'asc')
 }
 
-function findById(scheme_id) { // EXERCISE B
+async function findById(scheme_id) { // EXERCISE B
   /*
     1B- Study the SQL query below running it in SQLite Studio against `data/schemes.db3`:
 
@@ -83,9 +91,32 @@ function findById(scheme_id) { // EXERCISE B
         "steps": []
       }
   */
+
+ const rows = await  db('schemes as sc')
+        .leftJoin('steps as st','sc.scheme_id','st.scheme_id')
+        .select('st.*','sc.scheme_name')
+        .where('sc.scheme_id', scheme_id)
+        .orderBy('st.step_number','asc')
+  
+  const result = {
+    scheme_id: rows[0].scheme_id,
+    scheme_name: rows[0].scheme_name,
+    steps:[]
+  }
+
+  rows.forEach( row => {
+   if(row.step_id)
+   result.steps.push({
+   step_id:row.step_id,
+   step_number:row.step_number,
+   instructions:row.instructions
+  })
+  })
+
+  return result
 }
 
-function findSteps(scheme_id) { // EXERCISE C
+async function findSteps(scheme_id) { // EXERCISE C
   /*
     1C- Build a query in Knex that returns the following data.
     The steps should be sorted by step_number, and the array
@@ -105,7 +136,36 @@ function findSteps(scheme_id) { // EXERCISE C
           "scheme_name": "Get Rich Quick"
         }
       ]
+      SELECT
+     
+          st.step_id,
+          st.step_number,
+          st.instructions,
+          sc.scheme_name
+      FROM schemes as sc
+      LEFT JOIN steps as st
+          ON sc.scheme_id = st.scheme_id
+          WHERE sc.scheme_id = 1
+          oRDER BY st.step_number;
   */
+
+const rows = await db('schemes as sc')
+         .leftJoin('steps as st','sc.scheme_id','st.scheme_id')
+         .select(
+          'st.step_id',
+          'st.step_number', 
+          'st.instructions',
+          'sc.scheme_name'
+          )
+         .where('sc.scheme_id',scheme_id)
+         .orderBy('st.step_number','asc')
+
+  if(!rows[0].step_id){
+    return []
+  }else{
+    return rows
+  }
+          
 }
 
 function add(scheme) { // EXERCISE D

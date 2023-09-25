@@ -1,3 +1,5 @@
+const db = require('../../data/db-config');
+
 /*
   If `scheme_id` does not exist in the database:
 
@@ -6,9 +8,23 @@
     "message": "scheme with scheme_id <actual id> not found"
   }
 */
-const checkSchemeId = (req, res, next) => {
+const checkSchemeId = async (req, res, next) => {
+try{
+  const scheme = await db('schemes')
+                      .where('scheme_id', req.params.scheme_id)
+                      .first()
+ if(!scheme){
 
+  next({ status:404,
+         message:`scheme with scheme_id ${req.params.scheme_id} not found`})
+
+ }else{
+  next()
+ }
+}catch(err){
+  next(err)
 }
+};
 
 /*
   If `scheme_name` is missing, empty string or not a string:
@@ -18,9 +34,24 @@ const checkSchemeId = (req, res, next) => {
     "message": "invalid scheme_name"
   }
 */
-const validateScheme = (req, res, next) => {
-
-}
+const validateScheme = async (req, res, next) => {
+ try{
+  if (
+    req.body.scheme_name === undefined || 
+    typeof req.body.scheme_name !== "string"|| 
+    !req.body.scheme_name.trim()
+    ){
+      next({
+        status:400,
+        message:'invalid scheme_name'
+      })
+    }else{
+      next()
+    }
+ }catch(err){
+  next(err)
+ }
+};
 
 /*
   If `instructions` is missing, empty string or not a string, or
@@ -31,7 +62,25 @@ const validateScheme = (req, res, next) => {
     "message": "invalid step"
   }
 */
-const validateStep = (req, res, next) => {
+const validateStep = async (req, res, next) => {
+try{
+  if(
+    !req.body.instructions === undefined|| 
+    !req.body.instructions.trim() ||
+    typeof req.body.instructions !== "string" ||
+    typeof req.body.step_number !== "number" ||
+    req.body.step_number < 1 
+     ){
+      next({
+        status:400,
+        message:"invalid step"
+      })
+     }else{
+      next()
+     }
+}catch(err){
+  next(err)
+}
 
 }
 
